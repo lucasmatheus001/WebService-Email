@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Lobby - Nova Mensagem</title>
+    <link rel="stylesheet" href="/default.css">
+    <script src="/default.js"></script>
+</head>
+
+<header class="head">
+    <h1 style="justify-self: center;">
+        Bem vindo,
+    </h1>
+    <button onclick=logOut()>Sair</button>
+</header>
+<header class="head">
+    <h2>
+        Criar Nova Mensagem
+    </h2>
+    <button onclick=goBack()>Descartar</button>
+</header>
+
+<body class="body">
+    <span>
+        <label for="destinatario">Destinatario</label>
+        <select name="destinatario" id="destinatario"></select>
+    </span>
+    <label for="assunto">Assunto</label>
+    <input type="text" name="assunto" id="assunto" value="">
+    <label for="corpo">Conteudo</label>
+    <textarea
+        type="text"
+        name="corpo"
+        id="corpo"
+        style="resize: vertical;"
+    ></textarea>
+    <button type="button" onclick=sendMail()>Enviar</button>
+</body>
+
+<script>
+    let user, id, mail, destinatario, search = filterSearch(window.location.search)
+
+    if (search['id'] === -1) {
+        window.location = "http://127.0.0.1:3000/"
+    } else {
+        id = search['id']
+        pickUser(id, (response)=>{
+            if (!response.error) {
+                user = response
+                initialize()
+            } else {
+                alert("Usuario inexiste, redirecionando para a pagina inicial")
+                window.location = "http://127.0.0.1:3000/"
+            }
+        })
+    }
+
+    function initialize(){
+        changeUser()
+        requestUsers((users)=>{
+            let select = document.getElementsByName('destinatario')[0]
+            users = users.filter((user)=> {return user.id !== id})
+            users.map((user)=>{
+                let option = document.createElement('option')
+                option.innerText = user.name
+                option.value = user.id
+                select.append(option)
+            })
+        })
+    }
+
+    function changeUser() {
+        let title = document.getElementsByTagName('h1')[0]
+        if (user !== undefined) {
+            let { innerText } = title
+            title.innerText = innerText + " " + user.name
+        }
+    }
+
+    function sendMail(){
+        var mail = {
+            destinatario: Number(document.getElementById('destinatario').value),
+            remetente: Number(window.location.search.split('=')[1]),
+            assunto: document.getElementById('assunto').value,
+            corpo: document.getElementById('corpo').value,
+            data_envio: (new Date()).getTime()
+        }
+        if(mail.assunto === ""){
+            alert("O assunto do email não pode ser vazio")
+            return
+        }
+        if(mail.corpo === ""){
+            alert("O corpo do email não pode ser vazio")
+            return
+        }
+        request.open("POST", "http://127.0.0.1:3000/mail")
+        request.onload = function () {
+            var res = JSON.parse(request.responseText)  
+            if(!res.error){
+                let {search} = window.location
+                hrefLogged("lobby/listMail/sent", search)
+            }
+        }
+        if(mail.assunto !== "" && mail.corpo !== ""){
+            request.send(JSON.stringify(mail))
+        }
+    }
+
+    function goBack() {
+        if (window.confirm("Voce tem certeza que quer descartar a mensagem?")) {
+            let {search} = window.location
+            hrefLogged("lobby/listMail/received", search)
+        }
+    }
+    
+</script>
+
+</html>

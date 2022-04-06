@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Lobby - Mensagens recebidas</title>
+    <link rel="stylesheet" href="/default.css">
+    <script src="/default.js"></script>
+</head>
+
+<header class="head">
+    <h1 style="justify-self: center;">
+        Bem vindo,
+    </h1>
+    <button onclick=logOut()>Sair</button>
+</header>
+<header class="head">
+    <button style="width: 34%; height: 100%;" onclick="hrefLogged('lobby/newMail', window.location.search)">Enviar nova mensagem</button>
+    <button
+        style="width: 33%; height: 100%;"
+        id="caixa_entrada"
+        onclick="hrefLogged('lobby/listMail/received', window.location.search)"
+    >Caixa de entrada</button>
+    <button
+        style="width: 33%; height: 100%;"
+        id="enviados"
+        disabled
+    >Enviados</button>
+</header>
+<header class="head">
+    <h2>
+        Enviados
+    </h2>
+</header>
+
+<body class="body">
+    <div id="body">
+        <table style="width: 100%;">
+        </table>
+    </div>
+</body>
+
+<script>
+    let user, id, search = filterSearch(window.location.search)
+
+    if (search['id'] === undefined) {
+        window.location = "http://127.0.0.1:3000/"
+    } else {
+        id = search['id']
+        pickUser(id, (response)=>{
+            if (!response.error) {
+                user = response
+                changeUser()
+
+                caixa_entrada.disabled = false
+                caixa_entrada.onclick = () => hrefLogged('lobby/listMail/received', window.location.search)
+                enviados.disabled = true
+                pickSentMails(id, makeMailList)
+            } else {
+                alert("Usuario inexiste, redirecionando para a pagina inicial")
+                window.location = "http://127.0.0.1:3000/"
+            }
+        })
+    }
+
+    function changeUser() {
+        let title = document.getElementsByTagName('h1')[0]
+        if (user !== undefined) {
+            let { innerText } = title
+            title.innerText = innerText + " " + user.name
+        }
+    }
+
+    function makeMailList(mail_list){
+        let body = document.getElementById('body')
+        if(mail_list.length === 0){
+            body.innerHTML = ""
+            body = document.getElementsByClassName('body')[0]
+            let alert = document.createElement('h3')
+            alert.style = "align-self: center;"
+            alert.innerText = "Nao foram enviados emails"
+            body.append(alert)
+        }else{
+            body = body.children[0]
+            body.innerHTML = ""
+            body.append(makeMailBox({
+                id: -1,
+                destinatario_name: "Enviado para",
+                assunto: 'Assunto',
+                date: 'Data Envio'
+            }))
+            mail_list.sort((a, b)=> {return b.date - a.date})
+            for(let i in mail_list){
+                let data = new Date(mail_list[i].date)
+                mail_list[i].date = data.toLocaleDateString()
+                body.append(makeMailBox(mail_list[i]))
+            }
+        }
+        
+    }
+
+    function makeMailBox(mail){
+        let row, data1, data2, data3, data4 = '', data5 = ''
+        row = document.createElement('tr')
+        row.id = mail.id
+        if(mail.visited === false && window.location.toString().search('sent') === -1){
+            row.style = "font-weight: bold;"
+        }
+        data1 = document.createElement('td')
+        data1.style = "width: 15%;"
+        data1.innerText = mail.destinatario_name
+        data2 = document.createElement('td')
+        data2.style = "width: 50%;"
+        data2.innerText = mail.assunto
+        data3 = document.createElement('td')
+        data3.style = "width: 20%;"
+        data3.innerText = mail.date
+        data4 = ''
+        if(mail.id !== -1){
+            let {search} = window.location
+            data4 = document.createElement('button')
+            data4.innerText = 'Abrir'
+            data4.onclick = ()=>{
+                hrefLogged("lobby/listMail/reading", search + "&&mail=" + mail.id)
+            }
+        }
+        row.append(data1, data2, data3, data4)
+        return row
+    }
+
+    function goBack() {
+        let {search} = window.location
+        window.location = "http://127.0.0.1:3000/lobby" + search
+    }
+</script>
+
+</html>

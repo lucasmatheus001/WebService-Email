@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Home</title>
+  <link rel="stylesheet" href="/default.css">
+  <link rel="stylesheet" href="/home.css">
+  <script src="/default.js"></script>
+</head>
+
+<header class="head">
+  <h1>Pagina inicial</h1>
+</header>
+
+<body>
+  <div class="bodyTop"></div>
+  <div class="body">
+    <button onclick=createNewUser()>Criar novo usuario</button>
+    <div id="resultNewUser"></div>
+    <div>Selecione abaixo o usuario com que deseja entrar</div>
+    <div class="userList" id="user_list"></div>
+  </div>
+  <div class="bodyEnd"></div>
+</body>
+
+<script>
+  var request = new XMLHttpRequest()
+  requestUsers((result) => {
+    updateUserList(result)
+  })
+
+  function createNewUser() {
+    var user_name = window.prompt("Digite o nome do usuário a ser criado", "Jonh")
+    // var user_name = "Tupinamba"
+    request.open("POST", "http://127.0.0.1:3000/user")
+    request.onload = function () {
+      var res = JSON.parse(request.responseText)
+      var resultNewUser = document.getElementById("resultNewUser")
+      if (res.error) {
+        resultNewUser.className = "error"
+        resultNewUser.innerText = res.message
+      } else {
+        resultNewUser.className = "sucess"
+        resultNewUser.innerText = res.message
+        requestUsers((result) => {
+          updateUserList(result)
+        })
+      }
+    }
+    if (user_name === "") {
+      resultNewUser.className = "error"
+      resultNewUser.innerText = "Nome de usuario nao pode ser vazio"
+    } else if (user_name !== null) {
+      request.send(JSON.stringify({ user_name }))
+    }
+  }
+
+  function updateUserList(users) {
+    var user_list = document.getElementById("user_list")
+    for (let i in users) {
+      if (document.getElementsByName(users[i].name + users[i].id).length === 0) {
+        user_list.appendChild(makeUserButton(users[i]))
+      }
+    }
+  }
+
+  function makeUserButton(user) {
+    let inner_node = document.createElement("div")
+    inner_node.id = user.id
+    let inner_button_1 = document.createElement("button")
+    inner_button_1.style = "width:80%; height:30px;"
+    inner_button_1.name = user.name + user.id
+    inner_button_1.innerText = user.name
+    inner_button_1.onclick = logIn
+    inner_node.append(inner_button_1)
+    inner_button_1 = document.createElement("button")
+    inner_button_1.style = "width:20%; height:30px; padding: 0px; background-color: darkred;"
+    inner_button_1.innerText = "X"
+    inner_button_1.onclick = delUser
+    inner_node.append(inner_button_1)
+    return inner_node
+  }
+
+  function logIn(e) {
+    var { id } = e.target.parentElement
+    hrefLogged("lobby/listMail/received", "?id=" + id)
+  }
+
+  function delUser(e) {
+    var { id } = e.target.parentElement
+    if (window.confirm("Voce tem certeza que quer apagar esse usuario?")) {
+      deleteUser(id, (response) => {
+        document.getElementById(id).remove()
+      })
+    }
+  }
+</script>
+
+</html>

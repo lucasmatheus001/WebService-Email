@@ -1,0 +1,120 @@
+Seção Meu Drive simplificada com atalhos … 
+Nas próximas semanas, os itens presentes em mais de uma pasta serão substituídos por atalhos. O acesso a pastas e arquivos não mudará.Saiba mais
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Lobby - Nova Mensagem</title>
+    <link rel="stylesheet" href="/default.css">
+    <script src="/default.js"></script>
+</head>
+
+<header class="head">
+    <h1 style="justify-self: center;">
+        Bem vindo,
+    </h1>
+    <button onclick=logOut()>Sair</button>
+</header>
+<header class="head">
+    <h2>
+        Respondendo Mensagem
+    </h2>
+    <button onclick=goBack()>Descartar</button>
+</header>
+
+<body class="body">
+    <label>Destinatario: <span id="destinatario"></span></label>
+    <label>Assunto: <span id="assunto"></span></label>
+    <label for="corpo">Conteudo</label>
+    <textarea
+        type="text"
+        name="corpo"
+        id="corpo"
+        style="resize: vertical;"
+    ></textarea>
+    <button type="button" onclick=sendMail()>Enviar</button>
+    <p>Texto que sera enviado anexado a mensagem.</p>
+</body>
+
+<script>
+    let user, id, mail, destinatario, answerMail, search = filterSearch(window.location.search)
+
+    if (search['id'] === undefined || search['mail'] === undefined) {
+        window.location = "http://127.0.0.1:3000/"
+    } else {
+        id = search['id']
+        mail = search['mail']
+        pickUser(id, (response)=>{
+            if (!response.error) {
+                user = response
+                initialize()
+            } else {
+                alert("Usuario inexiste, redirecionando para a pagina inicial")
+                window.location = "http://127.0.0.1:3000/"
+            }
+        })
+    }
+
+    function initialize(){
+        changeUser()
+        pickEmailToAnswer(id, mail, (response)=>{
+            if (!response.error) {
+                answerMail = response
+                document.getElementById('destinatario').innerText = answerMail.destinatario_name
+                document.getElementById('assunto').innerText = answerMail.assunto
+                document.getElementsByClassName('body')[0].innerHTML += answerMail.body
+            } else {
+                alert(response.message)
+            }
+        })
+    }
+
+    function changeUser() {
+        let title = document.getElementsByTagName('h1')[0]
+        if (user !== undefined) {
+            let { innerText } = title
+            title.innerText = innerText + " " + user.name
+        }
+    }
+
+    function sendMail(){
+        let search = window.location.search.split('&&')
+        var message = {
+            mail_id: mail,
+            answering_user: id,
+            corpo: document.getElementById('corpo').value + answerMail.body,
+            data_envio: (new Date()).getTime()
+        }
+        if(message.assunto === ""){
+            alert("O assunto do email não pode ser vazio")
+            return
+        }
+        if(message.corpo === ""){
+            alert("O corpo do email não pode ser vazio")
+            return
+        }
+        request.open("POST", "http://127.0.0.1:3000/answerMail")
+        request.onload = function () {
+            var res = JSON.parse(request.responseText)  
+            if(!res.error){
+                let { search } = window.location
+                hrefLogged("lobby/listMail/reading", search)
+            }
+        }
+        if(message.assunto !== "" && message.corpo !== ""){
+            request.send(JSON.stringify(message))
+        }
+    }
+
+    function goBack() {
+        if (window.confirm("Voce tem certeza que quer descartar a mensagem?")) {
+            let {search} = window.location
+            search = search.split('&&')
+            hrefLogged("lobby/listMail/received", search[0])
+        }
+    }
+    
+</script>
+
+</html>

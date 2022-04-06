@@ -1,0 +1,46 @@
+Arguments: 
+  /usr/bin/node /usr/share/yarn/bin/yarn.js install
+
+PATH: 
+  /home/lucas/.sdkman/candidates/maven/current/bin:/home/lucas/.sdkman/candidates/java/current/bin:/home/lucas/.rbenv/plugins/ruby-build/bin:/home/lucas/.rbenv/shims:/home/lucas/.rbenv/bin:/home/lucas/.rvm/gems/ruby-2.7.0/bin:/home/lucas/.rvm/gems/ruby-2.7.0@global/bin:/home/lucas/.rvm/rubies/ruby-2.7.0/bin:/usr/lib/jvm/java-oracle//bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/lucas/.rvm/bin:/home/lucas/.rvm/bin
+
+Yarn version: 
+  1.22.17
+
+Node version: 
+  12.22.10
+
+Platform: 
+  linux x64
+
+Trace: 
+  SyntaxError: /home/lucas/Documentos/conteúdos UFPI/sistemas_distribuidos/Trabalho RestFull Webservice - Lucas Matheus(jack)/package.json: Unexpected token { in JSON at position 68
+      at JSON.parse (<anonymous>)
+      at /usr/share/yarn/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/usr/share/yarn/lib/cli.js:310:30)
+      at /usr/share/yarn/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "webservices",
+    "version": "1.0.0",
+    "description": ""{
+    "name": "webservices",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "start": "node server.js"
+    },
+    "author": "Lucas matheus da silva rocha",
+    "license": "ISC",
+    "dependencies": {
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

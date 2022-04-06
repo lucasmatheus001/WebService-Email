@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Lobby</title>
+    <link rel="stylesheet" href="/default.css">
+    <script src="/default.js"></script>
+</head>
+
+<header class="head">
+    <h1 style="justify-self: center;">
+        Bem vindo,
+    </h1>
+    <button onclick=logOut()>Sair</button>
+</header>
+<header class="head">
+    <h2>Lendo Mensagem</h2>
+    <div style="display: flex;flex-direction: column;">
+        <button onclick="hrefLogged('lobby/answer', window.location.search)">Responder</button>
+        <button onclick="hrefLogged('lobby/forward', window.location.search)">Encaminhar</button>
+        <button onclick=goBack()>Voltar</button>
+    </div>
+</header>
+
+<body class="body">
+    <h2 id="titulo">Placeholder Titulo</h2>
+    <div style="color: gray; display: flex; flex-direction: column;">
+        <span>De: <span id="remetente"></span></span>
+        <span>Para: <span id="destinatario"></span></span>
+        <span>Recebido em: <span id="data"></span></span>
+    </div>
+    <div id="corpo"></div>
+</body>
+
+<script>
+    let user, mail, id, search = filterSearch(window.location.search)
+
+    if (search['id'] === undefined || search['mail'] === undefined) {
+        hrefLogged("", "")
+    } else {
+        id = search['id']
+        mail = search['mail']
+        pickUser(id, (response) => {
+            if (!response.error) {
+                user = response
+                changeUser()
+                verifyMailId(id, mail)
+            } else {
+                alert("Usuario nao existe, redirecionando para a pagina inicial")
+                hrefLogged("", "")
+            }
+        })
+    }
+
+    function verifyMailId(id, mail) {
+        pickAndUpdateMail(id, mail, (response)=>{
+            if (!response.error) {
+                changeBody(response)
+            } else {
+                alert(response.message)
+                hrefLogged("lobby/listMail/received", "?id=" + id)
+            }
+        })
+    }
+
+    function changeUser() {
+        let title = document.getElementsByTagName('h1')[0]
+        if (user !== undefined) {
+            let { innerText } = title
+            title.innerText = innerText + " " + user.name
+        }
+    }
+
+    function changeBody(mail){
+        var titulo = document.getElementById("titulo")
+        titulo.innerText = mail.assunto
+        var remetente = document.getElementById("remetente")
+        remetente.innerText = mail.remetente_name
+        var destinatario = document.getElementById("destinatario")
+        destinatario.innerText = mail.destinatario_name
+        var data = document.getElementById("data")
+        data.innerText = (new Date(mail.date)).toLocaleDateString()
+        var corpo = document.getElementById("corpo")
+        corpo.innerHTML = mail.corpo
+    }
+
+    
+    function goBack() {
+        let { search } = window.location
+        hrefLogged("lobby/listMail/received", "?id=" + id)
+    }
+</script>
+
+</html>

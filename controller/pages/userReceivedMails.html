@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Lobby - Mensagens recebidas</title>
+    <link rel="stylesheet" href="/default.css">
+    <script src="/default.js"></script>
+</head>
+
+<header class="head">
+    <h1 style="justify-self: center;">
+        Bem vindo,
+    </h1>
+    <button onclick=logOut()>Sair</button>
+</header>
+<header class="head">
+    <button style="width: 34%; height: 100%;" onclick="hrefLogged('lobby/newMail', window.location.search)">Enviar nova mensagem</button>
+    <button 
+        style="width: 33%; height: 100%;" 
+        id="caixa_entrada" 
+        disabled
+    >Caixa de entrada</button>
+    <button 
+        style="width: 33%; height: 100%;" 
+        id="enviados"
+        onclick="hrefLogged('lobby/listMail/sent', window.location.search)"
+    >Enviados</button>
+</header>
+<header class="head">
+    <h2>
+        Caixa de Entrada
+    </h2>
+</header>
+
+<body class="body">
+    <div id="body">
+        <table style="width: 100%;">
+        </table>
+    </div>
+</body>
+
+<script>
+    let user, id, search = filterSearch(window.location.search)
+
+    if (search['id'] === undefined) {
+        window.location = "http://127.0.0.1:3000/"
+    } else {
+        id = search['id']
+        pickUser(id, (response)=>{
+            if (!response.error) {
+                user = response
+                changeUser()
+                let caixa_entrada = document.getElementById('caixa_entrada')
+                let enviados = document.getElementById('enviados')
+                caixa_entrada.disabled = true
+                enviados.disabled = false
+                enviados
+                
+                pickReceivedMails(id, makeMailList)
+            } else {
+                alert("Usuario inexiste, redirecionando para a pagina inicial")
+                window.location = "http://127.0.0.1:3000/"
+            }
+        })
+    }
+
+    function changeUser() {
+        let title = document.getElementsByTagName('h1')[0]
+        if (user !== undefined) {
+            let { innerText } = title
+            title.innerText = innerText + " " + user.name
+        }
+    }
+
+    function makeMailList(mail_list){
+        let body = document.getElementById('body')
+        if(mail_list.length === 0){
+            body.innerHTML = ""
+            body = document.getElementsByClassName('body')[0]
+            let alert = document.createElement('h3')
+            alert.style = "align-self: center;"
+            alert.innerText = "Nao existem emails recebidos"
+            body.append(alert)
+        }else{
+            body = body.children[0]
+            body.innerHTML = ""
+            body.append(makeMailBox({
+                id: -1,
+                remetente_name: "Recebido de",
+                assunto: 'Assunto',
+                date: 'Data Recebimento'
+            }))
+            mail_list.sort((a, b)=> {return b.date - a.date})
+            for(let i in mail_list){
+                let data = new Date(mail_list[i].date)
+                mail_list[i].date = data.toLocaleDateString()
+                body.append(makeMailBox(mail_list[i]))
+            }
+        }
+        
+    }
+
+    function makeMailBox(mail){
+        let row, data1, data2, data3, data4 = '', data5 = ''
+        row = document.createElement('tr')
+        row.id = mail.id
+        if(mail.visited === false && window.location.toString().search('sent') === -1){
+            row.style = "font-weight: bold;"
+        }
+        data1 = document.createElement('td')
+        data1.style = "width: 15%;"
+        data1.innerText = mail.remetente_name
+        data2 = document.createElement('td')
+        data2.style = "width: 50%;"
+        data2.innerText = mail.assunto
+        data3 = document.createElement('td')
+        data3.style = "width: 20%;"
+        data3.innerText = mail.date
+        data4 = ''
+        if(mail.id !== -1){
+            let {search} = window.location
+            data4 = document.createElement('button')
+            data4.innerText = 'Abrir'
+            data4.onclick = ()=>{
+                hrefLogged("lobby/listMail/reading", search + "&&mail=" + mail.id)
+            }
+            data5 = document.createElement('button')
+            data5.innerText = 'Excluir'
+            data5.onclick = ()=>{
+                if (window.confirm("Voce tem certeza que quer apagar esse email?")) {
+                    deleteMail(id, mail.id, (response)=>{
+                        if(!response.error){
+                            filterList(mail.id)
+                        }else{
+                            alert(response.message)
+                        }
+                    })
+                }
+            }
+        }
+        row.append(data1, data2, data3, data4, data5)
+        return row
+    }
+
+    function filterList(filterId){
+        let body = document.getElementById('body')
+        let child = body.children[0]
+        let new_table = []
+        for(let i = 0; i < child.children.length; i++){
+            if(Number(child.children[i].id) !== filterId){
+                new_table.push(child.children[i])
+            }
+        }
+        if(new_table.length === 1){
+            body.innerHTML = ""
+            body = document.getElementsByClassName('body')[0]
+            let alert = document.createElement('h3')
+            alert.style = "align-self: center;"
+            alert.innerText = "Nao existem emails recebidos"
+            body.append(alert)
+        }else{
+            body = child
+            body.innerHTML = ""
+            for(let i in new_table){
+                body.append(new_table[i])
+            }
+        }
+        
+    }
+
+    function goBack() {
+        let {search} = window.location
+        window.location = "http://127.0.0.1:3000/lobby" + search
+    }
+</script>
+
+</html>
